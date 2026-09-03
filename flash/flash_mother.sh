@@ -14,12 +14,12 @@ REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 IMG="$REPO/flash/raspios_lite.img.xz"
 IMG_URL="https://downloads.raspberrypi.com/raspios_lite_armhf/images/raspios_lite_armhf-2026-06-19/2026-06-18-raspios-trixie-armhf-lite.img.xz"
 SHA256="235aae6e32f40eb294b6485f99232d9ea5b6ee0251c8dc40e370177fac4754c2"
-VIDEOS_ROOT="$REPO/../100GOPRO"
+VIDEOS_ROOT="$REPO/videos"
 
-MAIN_CHAPTERS_LOWRES_5X4="$VIDEOS_ROOT/resized_5x4_640x512"
-MAIN_CHAPTERS_LOWRES_16X9="$VIDEOS_ROOT/resized_16x9_640x360"
-MAIN_CHAPTERS_HIRES_5X4="$VIDEOS_ROOT/resized_5x4_1280x1024"
-MAIN_CHAPTERS_HIRES_16X9="$VIDEOS_ROOT/resized_1080p"
+MAIN_CHAPTERS_LOWRES_5X4="$VIDEOS_ROOT/lowres_5x4"
+MAIN_CHAPTERS_LOWRES_16X9="$VIDEOS_ROOT/lowres_16x9"
+MAIN_CHAPTERS_HIRES_5X4="$VIDEOS_ROOT/hires_5x4"
+MAIN_CHAPTERS_HIRES_16X9="$VIDEOS_ROOT/hires_16x9"
 
 if [ ! -f "$IMG" ]; then
   echo "=== Downloading Raspberry Pi OS Lite image ==="

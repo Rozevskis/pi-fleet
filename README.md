@@ -32,6 +32,9 @@ device is found.
 - `scripts/` — the actual player, IPC control, and stall-watchdog scripts. Edit
   these, not `user-data` directly.
 - `systemd/` — the user-level systemd units for the player and watchdog.
+- `videos/` — the four resolution/aspect video sets (gitignored content,
+  tracked folder structure via `.gitkeep`). Populate with the 3 main-chapter
+  clips per tier/aspect; see naming in `flash_mother.sh`.
 - `flash/` — `flash_mother.sh` (does the actual flashing) and
   `build_user_data.py` (assembles `cloud-init/user-data` from `scripts/` +
   `systemd/`).
@@ -59,7 +62,7 @@ device — the script requires typing `YES` to confirm.
 The script downloads `raspios_lite.img.xz` on first run if not already present
 (cached in `flash/`, gitignored), flashes it, grows the root partition to fill
 the card, clears a known stale cloud-init cache baked into the stock image,
-writes the cloud-init config, and copies all four video sets from `../100GOPRO/`
+writes the cloud-init config, and copies all four video sets from `videos/`
 onto the card.
 
 ## Known hardware quirk
