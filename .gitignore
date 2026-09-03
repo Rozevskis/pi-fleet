@@ -1,0 +1,4 @@
+cloud-init/user-data
+*.img
+*.img.xz
+*.mp4

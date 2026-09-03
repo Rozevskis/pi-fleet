@@ -1,0 +1,13 @@
+network:
+  version: 2
+  wifis:
+    renderer: NetworkManager
+    wlan0:
+      dhcp4: true
+      regulatory-domain: "LV"
+      access-points:
+        "Kristofer's iPhone":
+          password: "qwerty13"
+        "Ventspils":
+          {}
+      optional: true

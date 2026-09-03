@@ -1,0 +1,5 @@
+[Unit]
+Description=Restart video loop if playback stalls
+[Service]
+Type=oneshot
+ExecStart=/home/admin/videoloop_watchdog.sh

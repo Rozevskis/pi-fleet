@@ -1,0 +1,7 @@
+[Unit]
+Description=Check video loop for stalls every 30s
+[Timer]
+OnBootSec=90
+OnUnitActiveSec=30
+[Install]
+WantedBy=timers.target
