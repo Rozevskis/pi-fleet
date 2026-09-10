@@ -65,9 +65,35 @@ umount "${DEVICE}2" 2>/dev/null || true
 echo "=== Flashing (this takes a few minutes) ==="
 rpi-imager --cli --sha256 "$SHA256" "$IMG" "$DEVICE"
 
-echo "NOTE: if the card reader drops off the USB bus now, reseat the card and"
-echo "re-run this script with the same device arg - it will skip re-flashing"
-echo "if you comment out the rpi-imager line, but simplest is to just rerun."
+echo "=== Waiting for the card to be readable again ==="
+echo "(some USB card readers drop off the bus right after a write - if this"
+echo " takes more than ~15s, just reseat the card; the script will pick it"
+echo " back up automatically, even if its device letter changes)"
+ORIGINAL_DEVICE="$DEVICE"
+for i in $(seq 1 90); do
+  CUR_SIZE=$(lsblk -bno SIZE "$DEVICE" 2>/dev/null | head -1)
+  if [ -n "$CUR_SIZE" ] && [ "$CUR_SIZE" != "0" ]; then
+    break
+  fi
+  for d in /dev/sd?; do
+    [ -e "$d" ] || continue
+    S=$(lsblk -bno SIZE "$d" 2>/dev/null | head -1)
+    T=$(lsblk -no TRAN "$d" 2>/dev/null | head -1)
+    if [ "$T" = "usb" ] && [ -n "$S" ] && [ "$S" -ge 28000000000 ] && [ "$S" -le 256000000000 ]; then
+      DEVICE="$d"
+    fi
+  done
+  sleep 2
+done
+CUR_SIZE=$(lsblk -bno SIZE "$DEVICE" 2>/dev/null | head -1)
+if [ -z "$CUR_SIZE" ] || [ "$CUR_SIZE" = "0" ]; then
+  echo "ABORT: card never came back online. Reseat it and re-run:"
+  echo "  sudo bash flash_mother.sh"
+  exit 1
+fi
+if [ "$DEVICE" != "$ORIGINAL_DEVICE" ]; then
+  echo "Card reappeared at $DEVICE (was $ORIGINAL_DEVICE) - continuing with the new path."
+fi
 
 echo "=== Re-reading partition table ==="
 partprobe "$DEVICE" || true
