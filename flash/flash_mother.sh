@@ -77,17 +77,9 @@ echo " takes more than ~15s, just reseat the card; the script will pick it"
 echo " back up automatically, even if its device letter changes)"
 sleep 5   # let a disconnect, if any, actually register before we start checking
 ORIGINAL_DEVICE="$DEVICE"
-STABLE_COUNT=0
+READY=0
 for i in $(seq 1 90); do
-  CUR_SIZE=$(lsblk -bno SIZE "$DEVICE" 2>/dev/null | head -1)
-  if [ -n "$CUR_SIZE" ] && [ "$CUR_SIZE" != "0" ]; then
-    STABLE_COUNT=$((STABLE_COUNT + 1))
-    # require two consecutive good reads, 2s apart, so a single stale/transient
-    # read right at the disconnect boundary can't fool us into continuing early
-    [ "$STABLE_COUNT" -ge 2 ] && break
-  else
-    STABLE_COUNT=0
-  fi
+  # Re-scan in case the device letter shifted after a reseat.
   for d in /dev/sd?; do
     [ -e "$d" ] || continue
     S=$(lsblk -bno SIZE "$d" 2>/dev/null | head -1)
@@ -96,11 +88,16 @@ for i in $(seq 1 90); do
       DEVICE="$d"
     fi
   done
+  # lsblk's SIZE can report a stale cached value even with no medium present,
+  # so actually try to read the device rather than trusting that number.
+  if dd if="$DEVICE" of=/dev/null bs=512 count=1 2>/dev/null; then
+    READY=1
+    break
+  fi
   sleep 2
 done
-CUR_SIZE=$(lsblk -bno SIZE "$DEVICE" 2>/dev/null | head -1)
-if [ -z "$CUR_SIZE" ] || [ "$CUR_SIZE" = "0" ]; then
-  echo "ABORT: card never came back online. Reseat it and re-run:"
+if [ "$READY" -ne 1 ]; then
+  echo "ABORT: card never came back online (couldn't read $DEVICE). Reseat it and re-run:"
   echo "  sudo bash flash_mother.sh"
   exit 1
 fi
