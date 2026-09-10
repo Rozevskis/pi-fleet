@@ -40,6 +40,10 @@ if command -v gpioget >/dev/null 2>&1; then
     CONTENT_PREFIX="Videos_timelapse"
   fi
 fi
+# Record the content choice this run made, so the watchdog can detect a
+# jumper change and restart us without needing a reboot (see
+# videoloop_watchdog.sh - keep its GPIO-reading logic in sync with this).
+echo "$CONTENT_PREFIX" > /tmp/videoloop_content_state
 
 MODEL=$(tr -d '\0' < /proc/device-tree/model 2>/dev/null)
 case "$MODEL" in

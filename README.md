@@ -46,6 +46,16 @@ pin requires the `gpiod` package (for `gpioget`); if it's missing, or the pin
 can't be read for any reason, this fails safe back to the default content
 rather than blocking playback.
 
+Note: `gpioget` syntax here is for **libgpiod v2** (`-c`/`-b`/`--numeric`
+flags) - the CLI changed significantly from v1, which used positional
+arguments instead.
+
+**Hot-swap**: moving the jumper takes effect without a reboot.
+`videoloop-watchdog.timer` (already polling every 30s for stalled playback)
+also re-reads the pin each cycle and restarts the player if the jumper state
+no longer matches what's currently playing - so a change takes effect within
+about 30 seconds, with a brief restart blip when it switches.
+
 ## Repo layout
 
 - `cloud-init/` — `meta-data`, `network-config` (tracked), `user-data` (generated,
