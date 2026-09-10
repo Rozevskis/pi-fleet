@@ -34,8 +34,9 @@ rm -f /tmp/mpvsocket-*
 
 CONTENT_PREFIX="Videos"
 if command -v gpioget >/dev/null 2>&1; then
-  JUMPER_VAL=$(gpioget --bias=pull-up gpiochip0 17 2>/dev/null)
-  if [ "$JUMPER_VAL" = "0" ] || [ "$JUMPER_VAL" = "inactive" ]; then
+  # libgpiod v2 CLI syntax: chip via -c, bias via -b, --numeric for plain 0/1.
+  JUMPER_VAL=$(gpioget -c gpiochip0 -b pull-up --numeric 17 2>/dev/null)
+  if [ "$JUMPER_VAL" = "0" ]; then
     CONTENT_PREFIX="Videos_timelapse"
   fi
 fi
