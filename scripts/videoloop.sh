@@ -16,7 +16,10 @@
 # compositor-based attempt for independent content, and DRM master issues to
 # work around for the naive direct-DRM approach).
 #
-# If more than one display is connected, only the first (sorted) one is used.
+# If more than one display is connected, only one is used - by default the
+# first (sorted) one, but a specific board can override this by creating
+# ~/.videoloop_connector (containing e.g. "HDMI-A-2") without needing any
+# change to this shared script.
 
 sleep 5
 rm -f /tmp/mpvsocket-*
@@ -43,6 +46,15 @@ if [ "${#CONNECTORS[@]}" -eq 0 ]; then
 fi
 
 base="${CONNECTORS[0]}"
+if [ -f ~/.videoloop_connector ]; then
+  PREFERRED=$(cat ~/.videoloop_connector)
+  for c in "${CONNECTORS[@]}"; do
+    if [ "${c#card*-}" = "$PREFERRED" ]; then
+      base="$c"
+      break
+    fi
+  done
+fi
 card_num="${base#card}"; card_num="${card_num%%-*}"
 conn_name="${base#card${card_num}-}"
 
