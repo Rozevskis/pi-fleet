@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import socket, sys, json
+import socket, sys, json, glob
 
 CMDS = {
     "next": {"command": ["playlist-next"]},
@@ -9,15 +9,27 @@ CMDS = {
     "unpause": {"command": ["set_property", "pause", False]},
 }
 
-if len(sys.argv) != 2 or sys.argv[1] not in CMDS:
-    print("usage: mpvctl.py next|prev|pause|restart|unpause")
+
+def usage():
+    print("usage: mpvctl.py next|prev|pause|restart|unpause [socket-path]")
+    print("       with no socket given, targets every /tmp/mpvsocket-* (all connected outputs)")
     sys.exit(1)
 
-s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-s.connect("/tmp/mpvsocket")
-s.sendall((json.dumps(CMDS[sys.argv[1]]) + "\n").encode())
-s.settimeout(1)
-try:
-    print(s.recv(4096).decode().strip())
-except socket.timeout:
-    pass
+
+if len(sys.argv) not in (2, 3) or sys.argv[1] not in CMDS:
+    usage()
+
+targets = [sys.argv[2]] if len(sys.argv) == 3 else sorted(glob.glob("/tmp/mpvsocket-*"))
+if not targets:
+    print("no mpv sockets found under /tmp/mpvsocket-*")
+    sys.exit(1)
+
+for path in targets:
+    try:
+        s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        s.settimeout(1)
+        s.connect(path)
+        s.sendall((json.dumps(CMDS[sys.argv[1]]) + "\n").encode())
+        print(path, "->", s.recv(4096).decode().strip())
+    except Exception as e:
+        print(path, "-> ERROR", e)
