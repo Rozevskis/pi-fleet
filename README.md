@@ -56,9 +56,9 @@ rather than blocking playback.
 - `videos/` — the four resolution/aspect video sets (gitignored content,
   tracked folder structure via `.gitkeep`). Populate with the 3 main-chapter
   clips per tier/aspect; see naming in `flash_mother.sh`. Also holds the
-  optional `timelapse_hires_5x4` / `timelapse_hires_16x9` folders for the
-  GPIO-switched alternate content (see above) - these are copied to the card
-  only if present, so a checkout without them still works fine.
+  optional `timelapse_{lowres,hires}_{5x4,16x9}` folders (four combinations)
+  for the GPIO-switched alternate content (see above) - these are copied to
+  the card only if present, so a checkout without them still works fine.
 - `flash/` — `flash_mother.sh` (does the actual flashing) and
   `build_user_data.py` (assembles `cloud-init/user-data` from `scripts/` +
   `systemd/`).
