@@ -81,9 +81,15 @@ for i in "${!CONNECTORS[@]}"; do
       [ -z "$AUDIO_CARD" ] && AUDIO_CARD="${HDMI_AUDIO_CARDS[0]:-}"
     fi
 
-    exec mpv --vo=gpu --gpu-context=drm --drm-connector="${card_num}.${conn_name}" \
+    # Note: mpv's own internal DRM card index (used in --drm-connector) does
+    # NOT necessarily match the sysfs card number in $card_num - on a Pi 4
+    # it enumerated as mpv's "card 0" while sysfs called it "card1". A bare
+    # connector name (no card prefix) resolves correctly as long as there's
+    # only one usable GPU, which is the case on every board in this fleet.
+    exec mpv --vo=gpu --gpu-context=drm --drm-connector="${conn_name}" \
       --fullscreen --no-terminal --really-quiet \
       --loop-playlist=inf --hwdec=v4l2m2m-copy --no-osc \
+      --ao=alsa,null \
       --audio-device="alsa/plughw:CARD=${AUDIO_CARD},DEV=0" \
       --input-ipc-server="/tmp/mpvsocket-${conn_name}" "${ROTATED[@]}"
   ) &
