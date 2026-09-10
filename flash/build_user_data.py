@@ -46,6 +46,9 @@ user_data = {
             "lock_passwd": False,
             "plain_text_passwd": "e4LabPASS",
             "sudo": "ALL=(ALL) NOPASSWD:ALL",
+            "ssh_authorized_keys": [
+                "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIERl0N8snJ9mQq01Lu5UUdMNrTQ3LhAJTXRpPyVNmUzT kristofers.rozevskis@gmail.com"
+            ],
         }
     ],
     "chpasswd": {"expire": False},
