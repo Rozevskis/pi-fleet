@@ -69,11 +69,18 @@ echo "=== Waiting for the card to be readable again ==="
 echo "(some USB card readers drop off the bus right after a write - if this"
 echo " takes more than ~15s, just reseat the card; the script will pick it"
 echo " back up automatically, even if its device letter changes)"
+sleep 5   # let a disconnect, if any, actually register before we start checking
 ORIGINAL_DEVICE="$DEVICE"
+STABLE_COUNT=0
 for i in $(seq 1 90); do
   CUR_SIZE=$(lsblk -bno SIZE "$DEVICE" 2>/dev/null | head -1)
   if [ -n "$CUR_SIZE" ] && [ "$CUR_SIZE" != "0" ]; then
-    break
+    STABLE_COUNT=$((STABLE_COUNT + 1))
+    # require two consecutive good reads, 2s apart, so a single stale/transient
+    # read right at the disconnect boundary can't fool us into continuing early
+    [ "$STABLE_COUNT" -ge 2 ] && break
+  else
+    STABLE_COUNT=0
   fi
   for d in /dev/sd?; do
     [ -e "$d" ] || continue
