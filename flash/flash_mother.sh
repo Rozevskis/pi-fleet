@@ -20,6 +20,10 @@ MAIN_CHAPTERS_LOWRES_5X4="$VIDEOS_ROOT/lowres_5x4"
 MAIN_CHAPTERS_LOWRES_16X9="$VIDEOS_ROOT/lowres_16x9"
 MAIN_CHAPTERS_HIRES_5X4="$VIDEOS_ROOT/hires_5x4"
 MAIN_CHAPTERS_HIRES_16X9="$VIDEOS_ROOT/hires_16x9"
+# Optional: GPIO-jumper-triggered alternate content (see scripts/videoloop.sh).
+# Copied only if present - not every checkout will have these.
+TIMELAPSE_HIRES_5X4="$VIDEOS_ROOT/timelapse_hires_5x4"
+TIMELAPSE_HIRES_16X9="$VIDEOS_ROOT/timelapse_hires_16x9"
 
 if [ ! -f "$IMG" ]; then
   echo "=== Downloading Raspberry Pi OS Lite image ==="
@@ -152,15 +156,20 @@ fi
 echo "=== Copying all four video sets (3 main chapters each) ==="
 copy_set() {
   local src="$1" dest_name="$2"
+  if [ ! -d "$src" ] || [ -z "$(ls -A "$src"/*.mp4 2>/dev/null)" ]; then
+    echo "  (skipping $dest_name - no video files at $src)"
+    return
+  fi
   local dest="$ROOT_MNT/home/admin/$dest_name"
   mkdir -p "$dest"
-  local files=("$src"/GX010025*.mp4 "$src"/GX020025*.mp4 "$src"/GX030025*.mp4)
-  cp -v "${files[@]}" "$dest/"
+  cp -v "$src"/*.mp4 "$dest/"
 }
 copy_set "$MAIN_CHAPTERS_LOWRES_5X4" "Videos_lowres_5x4"
 copy_set "$MAIN_CHAPTERS_LOWRES_16X9" "Videos_lowres_16x9"
 copy_set "$MAIN_CHAPTERS_HIRES_5X4" "Videos_hires_5x4"
 copy_set "$MAIN_CHAPTERS_HIRES_16X9" "Videos_hires_16x9"
+copy_set "$TIMELAPSE_HIRES_5X4" "Videos_timelapse_hires_5x4"
+copy_set "$TIMELAPSE_HIRES_16X9" "Videos_timelapse_hires_16x9"
 
 chown -R 1000:1000 "$ROOT_MNT/home/admin"
 

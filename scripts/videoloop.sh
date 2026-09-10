@@ -20,9 +20,25 @@
 # first (sorted) one, but a specific board can override this by creating
 # ~/.videoloop_connector (containing e.g. "HDMI-A-2") without needing any
 # change to this shared script.
+#
+# GPIO content switch: if GPIO17 (physical pin 11) is bridged to a ground pin
+# (jumper present, pin reads low), plays Videos_timelapse_<tier>_<aspect>
+# instead of the default Videos_<tier>_<aspect>. No jumper (the normal case
+# for every board except the one this was wired for) behaves exactly as
+# before. Requires the `gpiod` package (for `gpioget`); if it's missing or
+# the pin can't be read, this silently falls back to the default content, so
+# it fails safe rather than blocking playback.
 
 sleep 5
 rm -f /tmp/mpvsocket-*
+
+CONTENT_PREFIX="Videos"
+if command -v gpioget >/dev/null 2>&1; then
+  JUMPER_VAL=$(gpioget --bias=pull-up gpiochip0 17 2>/dev/null)
+  if [ "$JUMPER_VAL" = "0" ] || [ "$JUMPER_VAL" = "inactive" ]; then
+    CONTENT_PREFIX="Videos_timelapse"
+  fi
+fi
 
 MODEL=$(tr -d '\0' < /proc/device-tree/model 2>/dev/null)
 case "$MODEL" in
@@ -66,14 +82,18 @@ if [ -n "$MODE" ]; then
   [ "$IS_WIDE" = "1" ] && ASPECT="16x9"
 fi
 
-VIDEO_DIR="/home/admin/Videos_${TIER}_${ASPECT}"
+VIDEO_DIR="/home/admin/${CONTENT_PREFIX}_${TIER}_${ASPECT}"
+[ -d "$VIDEO_DIR" ] || VIDEO_DIR="/home/admin/${CONTENT_PREFIX}_${TIER}_5x4"
+# Fall back to the default kombucha content if this board doesn't have the
+# timelapse set for its tier/aspect, rather than showing nothing.
+[ -d "$VIDEO_DIR" ] || VIDEO_DIR="/home/admin/Videos_${TIER}_${ASPECT}"
 [ -d "$VIDEO_DIR" ] || VIDEO_DIR="/home/admin/Videos_${TIER}_5x4"
-[ -d "$VIDEO_DIR" ] || VIDEO_DIR=$(find /home/admin -maxdepth 1 -type d -name 'Videos_*' | head -1)
+[ -d "$VIDEO_DIR" ] || VIDEO_DIR=$(find /home/admin -maxdepth 1 -type d -name 'Videos*' | head -1)
 
 if [ "${#CONNECTORS[@]}" -gt 1 ]; then
   echo "$(date): WARNING multiple displays connected (${CONNECTORS[*]}), only using $conn_name" >> /home/admin/videoloop_display.log
 fi
-echo "$(date): model='$MODEL' tier=$TIER connector=$conn_name mode=$MODE aspect=$ASPECT -> $VIDEO_DIR" >> /home/admin/videoloop_display.log
+echo "$(date): model='$MODEL' tier=$TIER connector=$conn_name mode=$MODE aspect=$ASPECT content=$CONTENT_PREFIX -> $VIDEO_DIR" >> /home/admin/videoloop_display.log
 
 cd "$VIDEO_DIR" || exit 1
 mapfile -t FILES < <(ls *.mp4 2>/dev/null | sort)

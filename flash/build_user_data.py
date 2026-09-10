@@ -54,7 +54,7 @@ user_data = {
     "chpasswd": {"expire": False},
     "ssh_pwauth": True,
     "package_update": True,
-    "packages": ["mpv", "alsa-utils"],
+    "packages": ["mpv", "alsa-utils", "gpiod"],
     "write_files": write_files,
     "runcmd": [
         "chown -R admin:admin /home/admin",

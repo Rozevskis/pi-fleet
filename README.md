@@ -30,7 +30,21 @@ device is found.
 Single output only, currently. If more than one display is connected, only
 the first (sorted) connector is used - see "Known hardware quirk" below for
 why independent (or mirrored) content across both outputs isn't supported
-right now, even though it was implemented and tested.
+right now, even though it was implemented and tested. A specific board can
+override which connector is used by creating `~/.videoloop_connector`
+containing the connector name (e.g. `HDMI-A-2`).
+
+### GPIO content switch (kombucha vs. timelapse)
+
+A board can be wired with a jumper across **GPIO17 (physical pin 11) and a
+ground pin**. If bridged at boot, `videoloop.sh` plays
+`Videos_timelapse_<tier>_<aspect>` instead of the default
+`Videos_<tier>_<aspect>` - e.g. for showing the Irbe camera timelapses
+instead of the usual kombucha content on one specific board. No jumper (the
+normal case for every other board) behaves exactly as before. Reading the
+pin requires the `gpiod` package (for `gpioget`); if it's missing, or the pin
+can't be read for any reason, this fails safe back to the default content
+rather than blocking playback.
 
 ## Repo layout
 
@@ -41,7 +55,10 @@ right now, even though it was implemented and tested.
 - `systemd/` — the user-level systemd units for the player and watchdog.
 - `videos/` — the four resolution/aspect video sets (gitignored content,
   tracked folder structure via `.gitkeep`). Populate with the 3 main-chapter
-  clips per tier/aspect; see naming in `flash_mother.sh`.
+  clips per tier/aspect; see naming in `flash_mother.sh`. Also holds the
+  optional `timelapse_hires_5x4` / `timelapse_hires_16x9` folders for the
+  GPIO-switched alternate content (see above) - these are copied to the card
+  only if present, so a checkout without them still works fine.
 - `flash/` — `flash_mother.sh` (does the actual flashing) and
   `build_user_data.py` (assembles `cloud-init/user-data` from `scripts/` +
   `systemd/`).
